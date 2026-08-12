@@ -17,7 +17,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-zeromq/zmq4"
+	"github.com/quiknode-labs/zmq4"
 )
 
 const (

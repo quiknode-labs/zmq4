@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-zeromq/zmq4"
+	"github.com/quiknode-labs/zmq4"
 	"golang.org/x/sync/errgroup"
 )
 

@@ -12,7 +12,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/go-zeromq/zmq4"
+	"github.com/quiknode-labs/zmq4"
 )
 
 func main() {

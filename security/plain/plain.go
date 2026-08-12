@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/go-zeromq/zmq4"
+	"github.com/quiknode-labs/zmq4"
 )
 
 // security implements the PLAIN security mechanism.

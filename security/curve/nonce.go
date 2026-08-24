@@ -13,7 +13,6 @@ func (n *Nonce) Short(prefix string, nonce uint64) {
 	prefixBytes := unsafe.Slice(unsafe.StringData(prefix), 16)
 	asSlice := unsafe.Slice((*byte)(unsafe.Pointer(n)), 24)
 	copy(asSlice[:16], prefixBytes)
-	//binary.BigEndian.AppendUint64(asSlice[16:16], nonce)
 	binary.BigEndian.PutUint64(asSlice[16:], nonce)
 }
 

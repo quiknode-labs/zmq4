@@ -157,6 +157,31 @@ func TestGreeting(t *testing.T) {
 	}
 }
 
+func TestNewMsgFromString(t *testing.T) {
+	msg := NewMsgFromString([]string{"a", "bc"})
+	if len(msg.Frames) != 2 || string(msg.Frames[0]) != "a" || string(msg.Frames[1]) != "bc" {
+		t.Fatalf("got %#v", msg.Frames)
+	}
+}
+
+func TestPrependFrame(t *testing.T) {
+	frames := make([][]byte, 1, 4)
+	frames[0] = []byte("body")
+	got := prependFrame(frames, []byte("id"))
+	if len(got) != 2 || string(got[0]) != "id" || string(got[1]) != "body" {
+		t.Fatalf("got %#v", got)
+	}
+	if cap(got) != 4 {
+		t.Fatalf("did not reuse backing array, cap=%d", cap(got))
+	}
+
+	tight := [][]byte{[]byte("x")}
+	got = prependFrame(tight, []byte("id"))
+	if len(got) != 2 || string(got[0]) != "id" || string(got[1]) != "x" {
+		t.Fatalf("tight: %#v", got)
+	}
+}
+
 func TestToTitle(t *testing.T) {
 	for _, tc := range []struct {
 		in, want string

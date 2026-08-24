@@ -68,3 +68,16 @@ func TestSplitAddr(t *testing.T) {
 		})
 	}
 }
+
+func TestNewUUID(t *testing.T) {
+	id := newUUID()
+	if len(id) != 36 {
+		t.Fatalf("len=%d, want 36 (%q)", len(id), id)
+	}
+	if id[8] != '-' || id[13] != '-' || id[18] != '-' || id[23] != '-' {
+		t.Fatalf("missing dashes: %q", id)
+	}
+	if id[14] != '4' {
+		t.Fatalf("version nibble: %q", id)
+	}
+}

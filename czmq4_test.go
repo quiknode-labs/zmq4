@@ -10,7 +10,9 @@ package zmq4_test
 import (
 	"context"
 
+	czmq4 "github.com/go-zeromq/goczmq/v4"
 	"github.com/quiknode-labs/zmq4"
+	"github.com/quiknode-labs/zmq4/security/curve"
 )
 
 var (
@@ -415,4 +417,108 @@ func init() {
 	pubsubs = append(pubsubs, cpubsubs...)
 	xpubsubs = append(xpubsubs, cxpubsubs...)
 	routerdealers = append(routerdealers, crouterdealers...)
+
+	appendCurveCases()
+}
+
+func appendCurveCases() {
+	srv := mustCurveKeyPair()
+	cli := mustCurveKeyPair()
+	goSrv := curve.SecurityForServer(srv)
+	goCli := curve.SecurityForClient(srv.Public, cli)
+
+	pushpulls = append(pushpulls, []testCasePushPull{
+		{
+			name:     "tcp-cpush-pull-curve",
+			endpoint: must(EndPoint("tcp")),
+			push:     zmq4.NewCPush(bkg, curveCServerOpts(srv)...),
+			pull:     zmq4.NewPull(bkg, zmq4.WithSecurity(goCli)),
+		},
+		{
+			name:     "tcp-push-cpull-curve",
+			endpoint: must(EndPoint("tcp")),
+			push:     zmq4.NewPush(bkg, zmq4.WithSecurity(goSrv)),
+			pull:     zmq4.NewCPull(bkg, curveCClientOpts(cli, srv.Public)...),
+		},
+		{
+			name:     "tcp-cpush-cpull-curve",
+			endpoint: must(EndPoint("tcp")),
+			push:     zmq4.NewCPush(bkg, curveCServerOpts(srv)...),
+			pull:     zmq4.NewCPull(bkg, curveCClientOpts(cli, srv.Public)...),
+		},
+	}...)
+
+	reqreps = append(reqreps, []testCaseReqRep{
+		{
+			name:     "tcp-creq-rep-curve",
+			endpoint: must(EndPoint("tcp")),
+			req1:     zmq4.NewCReq(bkg, curveCClientOpts(cli, srv.Public)...),
+			rep:      zmq4.NewRep(bkg, zmq4.WithSecurity(goSrv)),
+		},
+		{
+			name:     "tcp-req-crep-curve",
+			endpoint: must(EndPoint("tcp")),
+			req1:     zmq4.NewReq(bkg, zmq4.WithSecurity(goCli)),
+			rep:      zmq4.NewCRep(bkg, curveCServerOpts(srv)...),
+		},
+		{
+			name:     "tcp-creq-crep-curve",
+			endpoint: must(EndPoint("tcp")),
+			req1:     zmq4.NewCReq(bkg, curveCClientOpts(cli, srv.Public)...),
+			rep:      zmq4.NewCRep(bkg, curveCServerOpts(srv)...),
+		},
+	}...)
+
+	pairs = append(pairs, []testCasePair{
+		{
+			name:     "tcp-cpair-pair-curve",
+			endpoint: must(EndPoint("tcp")),
+			srv:      zmq4.NewCPair(bkg, curveCServerOpts(srv)...),
+			cli:      zmq4.NewPair(bkg, zmq4.WithSecurity(goCli)),
+		},
+		{
+			name:     "tcp-pair-cpair-curve",
+			endpoint: must(EndPoint("tcp")),
+			srv:      zmq4.NewPair(bkg, zmq4.WithSecurity(goSrv)),
+			cli:      zmq4.NewCPair(bkg, curveCClientOpts(cli, srv.Public)...),
+		},
+		{
+			name:     "tcp-cpair-cpair-curve",
+			endpoint: must(EndPoint("tcp")),
+			srv:      zmq4.NewCPair(bkg, curveCServerOpts(srv)...),
+			cli:      zmq4.NewCPair(bkg, curveCClientOpts(cli, srv.Public)...),
+		},
+	}...)
+}
+
+func curveCServerOpts(keys *curve.KeyPair) []czmq4.SockOption {
+	return []czmq4.SockOption{
+		czmq4.SockSetCurveServer(1),
+		czmq4.SockSetCurvePublickey(mustZ85(keys.Public)),
+		czmq4.SockSetCurveSecretkey(mustZ85(keys.Private)),
+	}
+}
+
+func curveCClientOpts(client *curve.KeyPair, serverPub [32]byte) []czmq4.SockOption {
+	return []czmq4.SockOption{
+		czmq4.SockSetCurvePublickey(mustZ85(client.Public)),
+		czmq4.SockSetCurveSecretkey(mustZ85(client.Private)),
+		czmq4.SockSetCurveServerkey(mustZ85(serverPub)),
+	}
+}
+
+func mustCurveKeyPair() *curve.KeyPair {
+	kp, err := curve.NewKeyPair()
+	if err != nil {
+		panic(err)
+	}
+	return kp
+}
+
+func mustZ85(key [32]byte) string {
+	s, err := curve.EncodeString(key[:])
+	if err != nil {
+		panic(err)
+	}
+	return s
 }

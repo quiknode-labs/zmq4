@@ -11,9 +11,6 @@ import (
 	"fmt"
 	"io"
 	"strings"
-
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 )
 
 var (
@@ -271,6 +268,24 @@ func (fl flag) hasMore() bool   { return fl&hasMoreBitFlag == hasMoreBitFlag }
 func (fl flag) isLong() bool    { return fl&isLongBitFlag == isLongBitFlag }
 func (fl flag) isCommand() bool { return fl&isCommandBitFlag == isCommandBitFlag }
 
+// toTitle capitalizes the first letter of each ASCII word, matching
+// golang.org/x/text cases.Title(Und, NoLower) for ZMTP metadata keys.
 func toTitle(s string) string {
-	return cases.Title(language.Und, cases.NoLower).String(s)
+	if s == "" {
+		return s
+	}
+	b := make([]byte, len(s))
+	copy(b, s)
+	capNext := true
+	for i, c := range b {
+		if c == '-' || c == ' ' || c == '\t' {
+			capNext = true
+			continue
+		}
+		if capNext && 'a' <= c && c <= 'z' {
+			b[i] = c - 'a' + 'A'
+		}
+		capNext = false
+	}
+	return string(b)
 }

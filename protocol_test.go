@@ -156,3 +156,24 @@ func TestGreeting(t *testing.T) {
 		})
 	}
 }
+
+func TestToTitle(t *testing.T) {
+	for _, tc := range []struct {
+		in, want string
+	}{
+		{"socket-type", "Socket-Type"},
+		{"Socket-Type", "Socket-Type"},
+		{"identity", "Identity"},
+		{"Identity", "Identity"},
+		{"x-foo", "X-Foo"},
+		{"X-foo", "X-Foo"},
+		{"hello world", "Hello World"},
+		{"a_b", "A_b"},
+		{"SOCKET-TYPE", "SOCKET-TYPE"},
+		{"", ""},
+	} {
+		if got := toTitle(tc.in); got != tc.want {
+			t.Errorf("toTitle(%q) = %q, want %q", tc.in, got, tc.want)
+		}
+	}
+}

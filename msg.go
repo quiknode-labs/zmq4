@@ -40,9 +40,25 @@ func NewMsgString(frame string) Msg {
 func NewMsgFromString(frames []string) Msg {
 	msg := Msg{Frames: make([][]byte, len(frames))}
 	for i, frame := range frames {
-		msg.Frames[i] = append(msg.Frames[i], []byte(frame)...)
+		msg.Frames[i] = []byte(frame)
 	}
 	return msg
+}
+
+// prependFrame inserts frame at the front of frames, reusing the backing
+// array when there is spare capacity.
+func prependFrame(frames [][]byte, frame []byte) [][]byte {
+	n := len(frames)
+	if cap(frames) >= n+1 {
+		frames = frames[:n+1]
+		copy(frames[1:], frames[:n])
+		frames[0] = frame
+		return frames
+	}
+	out := make([][]byte, n+1)
+	out[0] = frame
+	copy(out[1:], frames)
+	return out
 }
 
 func (msg Msg) isCmd() bool {

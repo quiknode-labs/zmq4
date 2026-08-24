@@ -32,25 +32,25 @@ func (q *Queue) Init() {
 func (q *Queue) Push(val Msg) {
 	q.len++
 
-	var i []interface{}
+	var chunk []Msg
 	elem := q.rep.Back()
 	if elem != nil {
-		i = elem.Value.([]interface{})
+		chunk = elem.Value.([]Msg)
 	}
-	if i == nil || len(i) == innerCap {
-		elem = q.rep.PushBack(make([]interface{}, 0, innerCap))
-		i = elem.Value.([]interface{})
+	if chunk == nil || len(chunk) == innerCap {
+		elem = q.rep.PushBack(make([]Msg, 0, innerCap))
+		chunk = elem.Value.([]Msg)
 	}
 
-	elem.Value = append(i, val)
+	elem.Value = append(chunk, val)
 }
 
 func (q *Queue) Peek() (Msg, bool) {
-	i := q.front()
-	if i == nil {
+	chunk := q.front()
+	if chunk == nil {
 		return Msg{}, false
 	}
-	return i[0].(Msg), true
+	return chunk[0], true
 }
 
 func (q *Queue) Pop() {
@@ -60,20 +60,20 @@ func (q *Queue) Pop() {
 	}
 
 	q.len--
-	i := elem.Value.([]interface{})
-	i[0] = nil // remove ref to poped element
-	i = i[1:]
-	if len(i) == 0 {
+	chunk := elem.Value.([]Msg)
+	chunk[0] = Msg{} // drop ref to popped element
+	chunk = chunk[1:]
+	if len(chunk) == 0 {
 		q.rep.Remove(elem)
 	} else {
-		elem.Value = i
+		elem.Value = chunk
 	}
 }
 
-func (q *Queue) front() []interface{} {
+func (q *Queue) front() []Msg {
 	elem := q.rep.Front()
 	if elem == nil {
 		return nil
 	}
-	return elem.Value.([]interface{})
+	return elem.Value.([]Msg)
 }

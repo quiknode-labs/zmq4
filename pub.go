@@ -260,8 +260,7 @@ func (mw *pubMWriter) addConn(w *Conn) {
 			if !ok {
 				break
 			}
-			topic := string(msg.Frames[0])
-			if w.subscribed(topic) {
+			if w.subscribed(msg.Frames[0]) {
 				_ = w.SendMsg(msg)
 			}
 		}

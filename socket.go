@@ -104,7 +104,7 @@ func (sck *socket) topics() []string {
 	sck.mu.RLock()
 	for _, con := range sck.conns {
 		con.mu.RLock()
-		for topic := range con.topics {
+		for _, topic := range con.topics.keys() {
 			if _, dup := keys[topic]; dup {
 				continue
 			}

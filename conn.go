@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"strings"
 	"sync"
 	"sync/atomic"
 )
@@ -33,7 +32,7 @@ type Conn struct {
 	}
 
 	mu     sync.RWMutex
-	topics map[string]struct{} // set of subscribed topics
+	topics prefixTrie // subscribed topic prefixes
 
 	closed         int32
 	onCloseErrorCB func(c *Conn)
@@ -91,14 +90,13 @@ func Open(rw net.Conn, sec Security, sockType SocketType, sockID SocketIdentity,
 		sec:            sec,
 		Server:         server,
 		Meta:           make(Metadata),
-		topics:         make(map[string]struct{}),
 		onCloseErrorCB: onCloseErrorCB,
 	}
 	conn.Meta[sysSockType] = string(conn.typ)
 	conn.Meta[sysSockID] = conn.id.String()
 	conn.Peer.Meta = make(Metadata)
 
-	err := conn.init(sec)
+	err := conn.init()
 	if err != nil {
 		return nil, fmt.Errorf("zmq4: could not initialize ZMTP connection: %w", err)
 	}
@@ -107,10 +105,10 @@ func Open(rw net.Conn, sec Security, sockType SocketType, sockID SocketIdentity,
 }
 
 // init performs a ZMTP handshake over an io.ReadWriter
-func (conn *Conn) init(sec Security) error {
+func (conn *Conn) init() error {
 	var err error
 
-	err = conn.greet(conn.Server)
+	err = conn.greet()
 	if err != nil {
 		return fmt.Errorf("zmq4: could not exchange greetings: %w", err)
 	}
@@ -133,7 +131,7 @@ func (conn *Conn) init(sec Security) error {
 	return nil
 }
 
-func (conn *Conn) greet(server bool) error {
+func (conn *Conn) greet() error {
 	var err error
 	send := greeting{Version: defaultVersion}
 	send.Sig.Header = sigHeader
@@ -473,29 +471,20 @@ func (c *Conn) read() Msg {
 func (conn *Conn) subscribe(msg Msg) {
 	conn.mu.Lock()
 	v := msg.Frames[0]
-	k := string(v[1:])
+	k := v[1:]
 	switch v[0] {
 	case 0:
-		delete(conn.topics, k)
+		conn.topics.remove(k)
 	case 1:
-		conn.topics[k] = struct{}{}
+		conn.topics.insert(k)
 	}
 	conn.mu.Unlock()
 }
 
-func (conn *Conn) subscribed(topic string) bool {
+func (conn *Conn) subscribed(topic []byte) bool {
 	conn.mu.RLock()
 	defer conn.mu.RUnlock()
-	for k := range conn.topics {
-		switch {
-		case k == "":
-			// subscribed to everything
-			return true
-		case strings.HasPrefix(topic, k):
-			return true
-		}
-	}
-	return false
+	return conn.topics.match(topic)
 }
 
 func (conn *Conn) SetClosed() {

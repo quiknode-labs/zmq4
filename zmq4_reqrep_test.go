@@ -67,7 +67,7 @@ func TestReqRep(t *testing.T) {
 			cleanUp(ep)
 
 			if tc.skip {
-				t.Skipf(tc.name)
+				t.Skip(tc.name)
 			}
 			// t.Parallel()
 
@@ -201,7 +201,7 @@ func TestMultiReqRepIssue70(t *testing.T) {
 			defer tc.rep.Close()
 
 			if tc.skip {
-				t.Skipf(tc.name)
+				t.Skip(tc.name)
 			}
 			// t.Parallel()
 

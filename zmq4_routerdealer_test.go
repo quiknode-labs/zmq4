@@ -99,7 +99,7 @@ func TestRouterDealer(t *testing.T) {
 			cleanUp(ep)
 
 			if tc.skip {
-				t.Skipf(tc.name)
+				t.Skip(tc.name)
 			}
 
 			ctx, timeout := context.WithTimeout(context.Background(), 10*time.Second)

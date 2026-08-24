@@ -6,6 +6,7 @@ package zmq4
 
 import (
 	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"log"
@@ -38,5 +39,15 @@ func newUUID() string {
 	}
 	uuid[8] = uuid[8]&^0xc0 | 0x80
 	uuid[6] = uuid[6]&^0xf0 | 0x40
-	return fmt.Sprintf("%x-%x-%x-%x-%x", uuid[:4], uuid[4:6], uuid[6:8], uuid[8:10], uuid[10:])
+	var buf [36]byte
+	hex.Encode(buf[0:8], uuid[0:4])
+	buf[8] = '-'
+	hex.Encode(buf[9:13], uuid[4:6])
+	buf[13] = '-'
+	hex.Encode(buf[14:18], uuid[6:8])
+	buf[18] = '-'
+	hex.Encode(buf[19:23], uuid[8:10])
+	buf[23] = '-'
+	hex.Encode(buf[24:36], uuid[10:16])
+	return string(buf[:])
 }

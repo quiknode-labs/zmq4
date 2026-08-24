@@ -122,12 +122,13 @@ func (g *greeting) unmarshal(data []byte) {
 }
 
 func (g *greeting) write(w io.Writer) error {
-	_, err := w.Write(g.marshal())
+	var buf [zmtpMsgLen]byte
+	g.encode(&buf)
+	_, err := w.Write(buf[:])
 	return err
 }
 
-func (g *greeting) marshal() []byte {
-	var buf [zmtpMsgLen]byte
+func (g *greeting) encode(buf *[zmtpMsgLen]byte) {
 	buf[0] = g.Sig.Header
 	// padding 1 ignored
 	buf[9] = g.Sig.Footer
@@ -136,7 +137,6 @@ func (g *greeting) marshal() []byte {
 	copy(buf[12:32], g.Mechanism[:])
 	buf[32] = g.Server
 	// padding 2 ignored
-	return buf[:]
 }
 
 func (g *greeting) validate(ref [2]uint8) bool {

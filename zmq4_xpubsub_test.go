@@ -81,7 +81,7 @@ func TestXPubSub(t *testing.T) {
 			cleanUp(ep)
 
 			if tc.skip {
-				t.Skipf(tc.name)
+				t.Skip(tc.name)
 			}
 			// t.Parallel()
 

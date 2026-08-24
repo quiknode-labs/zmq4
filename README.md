@@ -2,7 +2,6 @@
 
 [![GitHub release](https://img.shields.io/github/release/go-zeromq/zmq4.svg)](https://github.com/quiknode-labs/zmq4/releases)
 [![go.dev reference](https://pkg.go.dev/badge/github.com/quiknode-labs/zmq4)](https://pkg.go.dev/github.com/quiknode-labs/zmq4)
-[![codecov](https://codecov.io/gh/go-zeromq/zmq4/branch/main/graph/badge.svg)](https://codecov.io/gh/go-zeromq/zmq4)
 [![GoDoc](https://godoc.org/github.com/quiknode-labs/zmq4?status.svg)](https://godoc.org/github.com/quiknode-labs/zmq4)
 [![License](https://img.shields.io/badge/License-BSD--3-blue.svg)](https://github.com/go-zeromq/license)
 
